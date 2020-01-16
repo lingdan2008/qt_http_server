@@ -49,22 +49,7 @@ void HttpServer::slotReadyRead()
 
     QTcpSocket *pTcpSocket = qobject_cast<QTcpSocket*>(sender());
     if(pTcpSocket) {
-        QByteArray baResponse = QString("<h1><center>Hello World</center></h1>\r\n").toUtf8();
-        QString sHttp = "HTTP/1.1 200 OK\r\n";
-        sHttp += "Server: nginx\r\n";
-        sHttp += "Content-Type: text/html;charset=utf-8\r\n";
-        sHttp += "Connection: keep-alive\r\n";
-        sHttp += QString("Content-Length: %1\r\n\r\n").arg(QString::number(baResponse.size()));
-
-        pTcpSocket->write(sHttp.toUtf8());
-        pTcpSocket->write(baResponse);
-        pTcpSocket->flush();
-        pTcpSocket->close();
-
-        qDebug() << "Response data:" << QString(baResponse);
-        qDebug() << "Response size:" << baResponse.size();
-
-        /*QByteArray baRequest = pTcpSocket->readAll();
+        QByteArray baRequest = pTcpSocket->readAll();
         QString sRequest(baRequest);
 
         qDebug() << "Request data:" << QString(baRequest);
@@ -105,6 +90,6 @@ do_exit:
 
             qDebug() << "Response data:" << QString(baResponse);
             qDebug() << "Response size:" << baResponse.size();
-        }*/
+        }
     }
 }
