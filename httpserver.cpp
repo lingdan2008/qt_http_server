@@ -13,6 +13,15 @@ HttpServer::HttpServer(QObject *parent) : QObject(parent)
 HttpServer::~HttpServer()
 {
     qDebug() << __FUNCTION__;
+
+    if(m_pTcpServer) {
+        if(m_pTcpServer->isListening()) {
+            m_pTcpServer->disconnect();
+            m_pTcpServer->close();
+
+            qDebug() << __FUNCTION__ << "close";
+        }
+    }
 }
 
 HttpServer &HttpServer::instance()
@@ -23,24 +32,35 @@ HttpServer &HttpServer::instance()
     return objHttpServer;
 }
 
-void HttpServer::run(const QHostAddress &addr, const qint64 &port)
+void HttpServer::start(const QHostAddress &addr, const qint64 &port)
 {
     qDebug() << __FUNCTION__ << addr.toString() << port;
 
     m_pTcpServer->listen(addr, port);
 }
 
+void HttpServer::stop()
+{
+    qDebug() << __FUNCTION__;
+
+    if(m_pTcpServer) {
+        m_pTcpServer->disconnect();
+        m_pTcpServer->close();
+
+        qDebug() << __FUNCTION__ << "close";
+    }
+}
+
 void HttpServer::slotNewConnection()
 {
     qDebug() << __FUNCTION__;
 
-    // Get the time
     m_nRequestSize = 0;
     m_nContentLength = 0;
 
     QTcpSocket *pTcpSocket = m_pTcpServer->nextPendingConnection();
 
-    QObject::connect(pTcpSocket, SIGNAL(readyRead()), this, SLOT(slotNewConnection()));
+    QObject::connect(pTcpSocket, SIGNAL(readyRead()), this, SLOT(slotReadyRead()));
 }
 
 void HttpServer::slotReadyRead()
@@ -50,12 +70,26 @@ void HttpServer::slotReadyRead()
     QTcpSocket *pTcpSocket = qobject_cast<QTcpSocket*>(sender());
     if(pTcpSocket) {
         QByteArray baRequest = pTcpSocket->readAll();
-        QString sRequest(baRequest);
 
         qDebug() << "Request data:" << QString(baRequest);
         qDebug() << "Request size:" << baRequest.size();
 
-        bool bMatchHeader = sRequest.startsWith(DEF_HTTP_VERSION);
+        QByteArray baResponse = QString("<h1><center>Hello World</center></h1>").toUtf8();
+        QString sHttp = "HTTP/1.1 200 OK\r\n";
+        sHttp += "Server: nginx\r\n";
+        sHttp += "Content-Type: text/html;charset=utf-8\r\n";
+        sHttp += "Connection: keep-alive\r\n";
+        sHttp += QString("Content-Length: %1\r\n\r\n").arg(QString::number(baResponse.size()));
+
+        pTcpSocket->write(sHttp.toUtf8());
+        pTcpSocket->write(baResponse);
+        pTcpSocket->flush();
+        pTcpSocket->close();
+
+        qDebug() << "Response data:" << QString(baResponse);
+        qDebug() << "Response size:" << baResponse.size();
+
+        /*bool bMatchHeader = sRequest.startsWith(DEF_HTTP_VERSION);
         if(bMatchHeader) {
             int nIdxBegin = sRequest.indexOf(DEF_HTTP_LENGTH);
             if(0 <= nIdxBegin) {
@@ -90,6 +124,7 @@ do_exit:
 
             qDebug() << "Response data:" << QString(baResponse);
             qDebug() << "Response size:" << baResponse.size();
-        }
+        }*/
     }
 }
+

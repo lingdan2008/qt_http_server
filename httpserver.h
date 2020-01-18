@@ -2,6 +2,7 @@
 #define HTTPSERVER_H
 
 #include <QObject>
+#include <QtCore>
 #include <QDebug>
 #include <QtNetwork/QtNetwork>
 #include <QtNetwork/QAbstractSocket>
@@ -18,11 +19,13 @@ class HttpServer : public QObject
     Q_OBJECT
 public:
     static HttpServer &instance();
-    void run(const QHostAddress &addr = QHostAddress("127.0.0.1"), const qint64 &port = 8000);
+    void start(const QHostAddress &addr = QHostAddress::Any, const qint64 &port = 8000);
+    void stop();
 
 private:
     explicit HttpServer(QObject *parent = 0);
     ~HttpServer();
+    Q_DISABLE_COPY(HttpServer)
 
 signals:
 

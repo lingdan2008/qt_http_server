@@ -23,7 +23,7 @@ void Dialog::on_pushButton_Start_clicked()
 {
     qDebug() << __FUNCTION__;
 
-    HttpServer::instance().run();
+    HttpServer::instance().start();
 
     ui->pushButton_Start->setEnabled(false);
     ui->pushButton_Stop->setEnabled(true);
@@ -32,6 +32,8 @@ void Dialog::on_pushButton_Start_clicked()
 void Dialog::on_pushButton_Stop_clicked()
 {
     qDebug() << __FUNCTION__;
+
+    HttpServer::instance().stop();
 
     ui->pushButton_Start->setEnabled(true);
     ui->pushButton_Stop->setEnabled(false);
